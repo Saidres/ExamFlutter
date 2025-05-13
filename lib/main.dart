@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:application_medicines/auth_controller.dart';
 import 'package:application_medicines/medication_controller.dart';
@@ -13,6 +14,8 @@ import 'package:application_medicines/screen/register_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: "assets/.env");
 
   final notificationService = NotificationService();
   await notificationService.initNotification();
@@ -31,6 +34,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
+      debugShowCheckedModeBanner: false,
       initialBinding: BindingsBuilder(() {
         Get.put(AuthController());
         Get.put(MedicationController());
@@ -41,7 +45,6 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => LoginScreen()),
         GetPage(name: '/register', page: () => RegisterScreen()),
         GetPage(name: '/medications', page: () => MedicationListScreen()),
-        GetPage(name: '/add-medication', page: () => AddMedicationScreen()),
         GetPage(name: '/add-medication', page: () => AddMedicationScreen()),
         GetPage(
           name: '/edit-medication/:id',

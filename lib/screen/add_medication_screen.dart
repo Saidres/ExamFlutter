@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Importa para usar inputFormatters
 import 'package:get/get.dart';
 
 import 'package:application_medicines/auth_controller.dart';
@@ -16,6 +17,9 @@ class AddMedicationScreen extends StatelessWidget {
   final TextEditingController dosageController = TextEditingController();
   final Rx<TimeOfDay> selectedTime = TimeOfDay.now().obs;
 
+  final RxString nameError = ''.obs;
+  final RxString dosageError = ''.obs;
+
   AddMedicationScreen({super.key});
 
   @override
@@ -28,21 +32,27 @@ class AddMedicationScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre del Medicamento',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            Obx(() => TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nombre del Medicamento',
+                    border: const OutlineInputBorder(),
+                    errorText: nameError.value.isEmpty ? null : nameError.value,
+                  ),
+                )),
             const SizedBox(height: 16),
-            TextField(
-              controller: dosageController,
-              decoration: const InputDecoration(
-                labelText: 'Dosis',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            Obx(() => TextField(
+                  controller: dosageController,
+                  keyboardType: TextInputType.number, // Solo números
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly, // Restringe a números
+                  ],
+                  decoration: InputDecoration(
+                    labelText: 'Dosis',
+                    border: const OutlineInputBorder(),
+                    errorText: dosageError.value.isEmpty ? null : dosageError.value,
+                  ),
+                )),
             const SizedBox(height: 16),
             Obx(
               () => ListTile(
@@ -65,31 +75,41 @@ class AddMedicationScreen extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () async {
-                final now = DateTime.now();
-                final medicationTime = DateTime(
-                  now.year,
-                  now.month,
-                  now.day,
-                  selectedTime.value.hour,
-                  selectedTime.value.minute,
-                );
+                // Validar los campos
+                nameError.value = nameController.text.isEmpty
+                    ? 'El nombre del medicamento no puede estar vacío'
+                    : '';
+                dosageError.value = dosageController.text.isEmpty
+                    ? 'La dosis no puede estar vacía'
+                    : '';
 
-                final medication = Medication(
-                  id: '',
-                  name: nameController.text,
-                  dosage: dosageController.text,
-                  time: medicationTime,
-                  userId: (await Get.find<AuthController>().account.get()).$id,
-                );
+                if (nameError.value.isEmpty && dosageError.value.isEmpty) {
+                  final now = DateTime.now();
+                  final medicationTime = DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    selectedTime.value.hour,
+                    selectedTime.value.minute,
+                  );
 
-                await medicationController.addMedication(medication);
-                await notificationService.scheduleMedicationNotification(
-                  'Es hora de tu medicamento',
-                  'Toma ${medication.name} - ${medication.dosage}',
-                  medicationTime,
-                );
+                  final medication = Medication(
+                    id: '',
+                    name: nameController.text,
+                    dosage: dosageController.text,
+                    time: medicationTime,
+                    userId: (await Get.find<AuthController>().account.get()).$id,
+                  );
 
-                Get.back();
+                  await medicationController.addMedication(medication);
+                  await notificationService.scheduleMedicationNotification(
+                    'Es hora de tu medicamento',
+                    'Toma ${medication.name} - ${medication.dosage}',
+                    medicationTime,
+                  );
+
+                  Get.back();
+                }
               },
               child: const Text('Guardar Medicamento'),
             ),

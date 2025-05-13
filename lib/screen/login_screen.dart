@@ -8,6 +8,9 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  final RxString emailError = ''.obs; // Variable para mostrar error en email
+  final RxString passwordError = ''.obs; // Variable para mostrar error en contraseña
+
   LoginScreen({super.key});
 
   @override
@@ -21,30 +24,38 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Correo Electrónico',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
+            Obx(() => TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Correo Electrónico',
+                    border: const OutlineInputBorder(),
+                    errorText: emailError.value.isEmpty ? null : emailError.value,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                )),
             const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
+            Obx(() => TextField(
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Contraseña',
+                    border: const OutlineInputBorder(),
+                    errorText: passwordError.value.isEmpty ? null : passwordError.value,
+                  ),
+                  obscureText: true,
+                )),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () async {
-                await authController.login(
-                  emailController.text,
-                  passwordController.text,
-                );
+                // Validar inputs
+                emailError.value = emailController.text.isEmpty ? 'El correo no puede estar vacío' : '';
+                passwordError.value = passwordController.text.isEmpty ? 'La contraseña no puede estar vacía' : '';
+
+                if (emailError.value.isEmpty && passwordError.value.isEmpty) {
+                  await authController.login(
+                    emailController.text,
+                    passwordController.text,
+                  );
+                }
               },
               child: const Text('Iniciar Sesión'),
             ),

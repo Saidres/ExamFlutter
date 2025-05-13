@@ -16,15 +16,13 @@ class InitialScreen extends StatelessWidget {
   }
 
   void _checkAuth(AuthController authController) async {
-    await Future.delayed(
-      Duration(seconds: 1),
-    );
-    final isLoggedIn = await authController.checkAuth();
-
-    if (isLoggedIn) {
-      Get.toNamed('/medications');
+    final isAuthenticated = await authController.checkAuth();
+    if (isAuthenticated) {
+      // Redirigir a la pantalla de Home y eliminar el historial de navegación
+      Get.offAllNamed('/medications');
     } else {
-      Get.toNamed('/login');
+      // Redirigir a la pantalla de login y eliminar el historial de navegación
+      Get.offAllNamed('/login');
     }
   }
 }

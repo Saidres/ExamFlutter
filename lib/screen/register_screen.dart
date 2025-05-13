@@ -7,8 +7,11 @@ class RegisterScreen extends StatelessWidget {
   final AuthController authController = Get.find<AuthController>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+
+  final RxString emailError = ''.obs; // Variable para mostrar error en email
+  final RxString passwordError = ''.obs; // Variable para mostrar error en contraseña
+  final RxString confirmPasswordError = ''.obs; // Variable para mostrar error en confirmación
 
   RegisterScreen({super.key});
 
@@ -23,45 +26,53 @@ class RegisterScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Correo Electrónico',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
+            Obx(() => TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Correo Electrónico',
+                    border: const OutlineInputBorder(),
+                    errorText: emailError.value.isEmpty ? null : emailError.value,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                )),
             const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
+            Obx(() => TextField(
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Contraseña',
+                    border: const OutlineInputBorder(),
+                    errorText: passwordError.value.isEmpty ? null : passwordError.value,
+                  ),
+                  obscureText: true,
+                )),
             const SizedBox(height: 16),
-            TextField(
-              controller: confirmPasswordController,
-              decoration: const InputDecoration(
-                labelText: 'Confirmar Contraseña',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
+            Obx(() => TextField(
+                  controller: confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmar Contraseña',
+                    border: const OutlineInputBorder(),
+                    errorText: confirmPasswordError.value.isEmpty ? null : confirmPasswordError.value,
+                  ),
+                  obscureText: true,
+                )),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                if (passwordController.text == confirmPasswordController.text) {
+                // Validar inputs
+                emailError.value = emailController.text.isEmpty ? 'El correo no puede estar vacío' : '';
+                passwordError.value = passwordController.text.isEmpty ? 'La contraseña no puede estar vacía' : '';
+                confirmPasswordError.value = confirmPasswordController.text.isEmpty
+                    ? 'La confirmación no puede estar vacía'
+                    : (passwordController.text != confirmPasswordController.text
+                        ? 'Las contraseñas no coinciden'
+                        : '');
+
+                if (emailError.value.isEmpty &&
+                    passwordError.value.isEmpty &&
+                    confirmPasswordError.value.isEmpty) {
                   authController.createAccount(
                     emailController.text,
                     passwordController.text,
-                  );
-                } else {
-                  Get.snackbar(
-                    'Error',
-                    'Las contraseñas no coinciden',
-                    snackPosition: SnackPosition.BOTTOM,
                   );
                 }
               },

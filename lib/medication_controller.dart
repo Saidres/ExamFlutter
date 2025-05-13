@@ -3,13 +3,15 @@ import 'package:get/get.dart';
 
 import 'package:application_medicines/appwrite_config.dart';
 import 'package:application_medicines/medication.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importa dotenv
+
 
 class MedicationController extends GetxController {
   final Databases databases = Databases(AppwriteConfig.getClient());
   final RxList<Medication> medications = <Medication>[].obs;
 
-  static const String databaseId = '❓❓❓❓❓❓❓❓❓❓';
-  static const String collectionId = '❓❓❓❓❓❓❓❓❓❓';
+  static final String databaseId = dotenv.env['APPWRITE_DATABASE_ID'] ?? '';
+  static final String collectionId = dotenv.env['APPWRITE_COLLECTION_ID'] ?? '';
 
   @override
   void onInit() {

@@ -4,10 +4,13 @@ import 'package:get/get.dart';
 import 'package:application_medicines/auth_controller.dart';
 import 'package:application_medicines/medication_controller.dart';
 import 'package:application_medicines/medication.dart';
+import 'package:application_medicines/screen/medication_detail_screen.dart';
 
 class MedicationListScreen extends StatelessWidget {
   final MedicationController medicationController =
       Get.find<MedicationController>();
+
+  final RxString searchQuery = ''.obs; // Variable para manejar la búsqueda
 
   MedicationListScreen({super.key});
 
@@ -23,14 +26,42 @@ class MedicationListScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Obx(
-        () => ListView.builder(
-          itemCount: medicationController.medications.length,
-          itemBuilder: (context, index) {
-            final medication = medicationController.medications[index];
-            return MedicationCard(medication: medication);
-          },
-        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (value) {
+                searchQuery.value = value; // Actualizar la búsqueda
+              },
+              decoration: const InputDecoration(
+                labelText: 'Buscar Medicamento',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Obx(
+              () {
+                // Filtrar medicamentos según la búsqueda
+                final filteredMedications = medicationController.medications
+                    .where((medication) => medication.name
+                        .toLowerCase()
+                        .contains(searchQuery.value.toLowerCase()))
+                    .toList();
+
+                return ListView.builder(
+                  itemCount: filteredMedications.length,
+                  itemBuilder: (context, index) {
+                    final medication = filteredMedications[index];
+                    return MedicationCard(medication: medication);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.toNamed('/add-medication'),
@@ -48,14 +79,12 @@ class MedicationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.all(8.0),
       child: ListTile(
         title: Text(medication.name),
         subtitle: Text('Dosis: ${medication.dosage}'),
-        trailing: Text(
-          '${medication.time.hour}:${medication.time.minute.toString().padLeft(2, '0')}',
-        ),
-        onTap: () => Get.toNamed('/edit-medication/${medication.id}'),
+        onTap: () {
+          Get.to(() => MedicationDetailScreen(medication: medication));
+        },
       ),
     );
   }

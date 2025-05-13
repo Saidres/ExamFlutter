@@ -33,15 +33,13 @@ class AuthController extends GetxController {
 
   Future<void> login(String email, String password) async {
     try {
-      await account.createEmailPasswordSession(
-        email: email,
-        password: password,
-      );
-      final userData = await account.get();
-      user.value = userData;
-      Get.toNamed('/medications');
+      await account.createEmailPasswordSession(email: email, password: password);
+      user.value = await account.get();
+
+      // Redirigir a la pantalla de Home y eliminar el historial de navegación
+      Get.offAllNamed('/medications');
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('Error', 'No se pudo iniciar sesión: $e');
     }
   }
 
@@ -49,6 +47,9 @@ class AuthController extends GetxController {
     try {
       await account.deleteSession(sessionId: 'current');
       user.value = null;
+
+      // Redirigir a la pantalla de login y eliminar el historial de navegación
+      Get.offAllNamed('/login');
     } catch (e) {
       Get.snackbar('Error', e.toString());
     }
